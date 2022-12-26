@@ -31,7 +31,6 @@ function handleComplete(event) {
     background.graphics.beginBitmapFill(loader.getResult('background')).drawRect(0, 0, w, h)
     background.x = 0
     background.y = 0
-    background.addEventListener('click', moveCarToClick)
     stage.addChild(background)
 
     let spriteSheet = new createjs.SpriteSheet({
