@@ -2,7 +2,7 @@ let stage, canvas;
 let w, h;
 let loader;
 let move_multiplier = 10;
-let character, car;
+let carSpeed = 50;
 
 
 function init() {
@@ -14,8 +14,10 @@ function init() {
 
     let manifest = [
         {src: "background.png", id: "background"},
-        {src: "character_sprite.png", id: "character"},
-        {src: "car.png", id: "car"},
+        {src: "car.png", id: "car1"},
+        {src: "car1.png", id: "car2"},
+        {src: "car2.png", id: "car3"},
+        {src: "car3.png", id: "car4"},
     ];
 
     createjs.Touch.enable(stage);
@@ -33,53 +35,52 @@ function handleComplete(event) {
     background.y = 0
     stage.addChild(background)
 
-    let spriteSheet = new createjs.SpriteSheet({
-        framerate: 4,
-        "images": [loader.getResult("character")],
-        "frames": {"regX": 0, "height": 600, "count": 16, "regY": 0, "width": 400, "margin": 30},
-        "animations": {
-            "idle_down": [0],
-            "idle_up": [5],
-            "idle_left": [9],
-            "idle_right": [13],
-            "move_down": [1, 3, 'idle_down'],
-            "move_up": [6, 8, 'idle_up'],
-            "move_left": [10, 12, 'idle_left'],
-            "move_right": [14, 16, 'idle_right'],
-        }
-    });
+    let cars = new Map()
 
-    car = new createjs.Bitmap(loader.getResult('car'))
-    car.x = 360
-    car.y = 640
-    car.regX = car.image.width / 2
-    car.regY = car.image.height / 2
-    car.scale = 0.2
+    for (let i = 1; i <= 4; i++) {
+        let car = new createjs.Bitmap(loader.getResult(`car${i}`))
+        console.log(car)
+        car.x = 360
+        car.y = 640
+        car.regX = car.image.width / 2
+        car.regY = car.image.height / 2
+        car.scale = 0.2
+        cars.set(`car${i}`, car)
 
-    character = new createjs.Sprite(spriteSheet, 'idle_down')
-    character.scale = 0.2
+        stage.addChild(car)
+    }
 
-    stage.addChild(car)
-
-    moveCar(['20*100', '10*10', '15*140', '20*20', '10*90'])
+    moveCar(['20*41', '10*162', '15*89', '20*20', '10*90'], cars.get('car1'))
+    moveCar(['20*26', '10*41', '15*210', '20*20', '10*90'], cars.get('car2'))
+    moveCar(['20*310', '10*61', '15*86', '20*20', '10*90'], cars.get('car3'))
+    moveCar(['20*90', '10*267', '15*185', '20*20', '10*90'], cars.get('car4'))
 
     createjs.Ticker.timingMode = createjs.Ticker.RAF
     createjs.Ticker.addEventListener("tick", tick);
 }
 
-function moveCar(array) {
+function moveCar(array, car) {
+
+    console.log(car)
     let [distance, angle] = array.shift().split('*')
     let rad = +angle * Math.PI / 180
+
+    console.log()
 
     let x = car.x + distance * move_multiplier * Math.cos(rad)
     let y = car.y + distance * move_multiplier * Math.sin(rad)
 
-    createjs.Tween.get(car)
-        .to({ rotation: +angle + 180 }, 500)
-        .to( { x: x, y: y }, 1000 )
-        .addEventListener('complete', () => {
-            if (array.length > 0) moveCar(array)
-        })
+    let beep = createjs.Tween.get(car, {override: true})
+    beep.to({ rotation: +angle + 180 }, 500)
+    .to( { x: x, y: y }, 10000 )
+    .addEventListener('complete', () => {
+        if (array.length > 0) moveCar(array, car)
+    })
+
+    setTimeout(() => {
+        beep.timeScale = 4
+    }, 2000)
+
 }
 
 function tick(event) {
