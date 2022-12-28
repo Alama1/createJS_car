@@ -15,7 +15,7 @@ function init() {
     canvas = stage.canvas
 
     let manifest = [
-        {src: "background.png", id: "background"},
+        {src: "bg.jpg", id: "background"},
         {src: "point.png", id: "point"},
     ];
 
@@ -29,7 +29,7 @@ function init() {
 function handleComplete(event) {
     let background = new createjs.Shape();
 
-    background.graphics.beginBitmapFill(loader.getResult('background')).drawRect(0, 0, w, h)
+    background.graphics.beginLinearGradientFill(["#000","#FFF"], [0, 1], 0, h, 0, 120).drawRect(0, 0, w, h)
     background.x = 0
     background.y = 0
     stage.addChild(background)
