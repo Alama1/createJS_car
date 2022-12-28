@@ -3,7 +3,8 @@ let w, h;
 let loader;
 let move_multiplier = 10;
 let carSpeed = 50;
-let point;
+let point
+let pointFramerate = 10;
 
 
 function init() {
@@ -36,7 +37,7 @@ function handleComplete(event) {
     point = new createjs.Bitmap(loader.getResult('point'))
 
     let spriteSheet = new createjs.SpriteSheet({
-        framerate: 27,
+        framerate: pointFramerate,
         'images': [loader.getResult('point')],
         'frames': {'regX': 72, 'height': 145, 'count': 20, 'regY': 72, 'width': 145 },
         'animations': {
@@ -54,11 +55,8 @@ function handleComplete(event) {
     moveSprite(['20*41', '10*162', '15*89', '20*20', '10*90'],point)
 
     createjs.Ticker.timingMode = createjs.Ticker.RAF
+    createjs.Ticker.framerate = 10
     createjs.Ticker.addEventListener("tick", tick);
-}
-
-function handleDeletion(event) {
-    console.log(event)
 }
 
 function handleClick (event) {
@@ -94,5 +92,7 @@ function moveSprite(array, point) {
 }
 
 function tick(event) {
+    let newFramerate = document.getElementById('framerate').value || pointFramerate
+    point.framerate = +newFramerate
     stage.update(event)
 }
