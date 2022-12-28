@@ -3,6 +3,7 @@ let w, h;
 let loader;
 let move_multiplier = 10;
 let carSpeed = 50;
+let point;
 
 
 function init() {
@@ -14,10 +15,7 @@ function init() {
 
     let manifest = [
         {src: "background.png", id: "background"},
-        {src: "car.png", id: "car1"},
-        {src: "car1.png", id: "car2"},
-        {src: "car2.png", id: "car3"},
-        {src: "car3.png", id: "car4"},
+        {src: "point.png", id: "point"},
     ];
 
     createjs.Touch.enable(stage);
@@ -35,46 +33,58 @@ function handleComplete(event) {
     background.y = 0
     stage.addChild(background)
 
-    let cars = new Map()
+    point = new createjs.Bitmap(loader.getResult('point'))
 
-    for (let i = 1; i <= 4; i++) {
-        let car = new createjs.Bitmap(loader.getResult(`car${i}`))
-        console.log(car)
-        car.x = 360
-        car.y = 640
-        car.regX = car.image.width / 2
-        car.regY = car.image.height / 2
-        car.scale = 0.2
-        cars.set(`car${i}`, car)
+    let spriteSheet = new createjs.SpriteSheet({
+        framerate: 27,
+        'images': [loader.getResult('point')],
+        'frames': {'regX': 72, 'height': 145, 'count': 20, 'regY': 72, 'width': 145 },
+        'animations': {
+            'idle': [0, 9, 'idle'],
+            'click': [10, 19, 'click']
+        }
+    });
 
-        stage.addChild(car)
-    }
+    point = new createjs.Sprite(spriteSheet, 'idle')
+    point.x = 100
+    point.y = 100
+    point.addEventListener('click', handleClick)
 
-    moveCar(['20*41', '10*162', '15*89', '20*20', '10*90'], cars.get('car1'))
-    moveCar(['20*26', '10*41', '15*210', '20*20', '10*90'], cars.get('car2'))
-    moveCar(['20*310', '10*61', '15*86', '20*20', '10*90'], cars.get('car3'))
-    moveCar(['20*90', '10*267', '15*185', '20*20', '10*90'], cars.get('car4'))
+    stage.addChild(point)
+    moveSprite(['20*41', '10*162', '15*89', '20*20', '10*90'],point)
 
     createjs.Ticker.timingMode = createjs.Ticker.RAF
     createjs.Ticker.addEventListener("tick", tick);
 }
 
-function moveCar(array, car) {
+function handleDeletion(event) {
+    console.log(event)
+}
 
-    console.log(car)
+function handleClick (event) {
+    let point = event.target
+    point.gotoAndPlay('click')
+    setTimeout(() => {
+        stage.removeChild(point)
+    }, 1000)
+
+    createjs.Tween.get(point, { override: true })
+        .to( { x: point.x, y: point.y })
+}
+
+function moveSprite(array, point) {
     let [distance, angle] = array.shift().split('*')
     let rad = +angle * Math.PI / 180
 
-    console.log()
 
-    let x = car.x + distance * move_multiplier * Math.cos(rad)
-    let y = car.y + distance * move_multiplier * Math.sin(rad)
+    let x = point.x + distance * move_multiplier * Math.cos(rad)
+    let y = point.y + distance * move_multiplier * Math.sin(rad)
 
-    let beep = createjs.Tween.get(car, {override: true})
+    let beep = createjs.Tween.get(point, {override: true})
     beep.to({ rotation: +angle + 180 }, 500)
     .to( { x: x, y: y }, 10000 )
     .addEventListener('complete', () => {
-        if (array.length > 0) moveCar(array, car)
+        if (array.length > 0) moveSprite(array, point)
     })
 
     setTimeout(() => {
