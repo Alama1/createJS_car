@@ -7,6 +7,7 @@ let ork
 let pointFramerate = 10;
 let orkContainer
 let orksOnScreen = 10
+let spriteSheet
 
 
 function init() {
@@ -15,10 +16,6 @@ function init() {
     h = stage.canvas.height;
 
     canvas = stage.canvas
-
-    orkContainer = new createjs.Container
-
-    stage.addChild(orkContainer)
 
     let manifest = [
         {src: "point.png", id: "point"},
@@ -39,7 +36,11 @@ function handleComplete(event) {
     background.y = 0
     stage.addChild(background)
 
-    let spriteSheet = new createjs.SpriteSheet({
+
+    orkContainer = new createjs.Container();
+    stage.addChild(orkContainer);
+
+    spriteSheet = new createjs.SpriteSheet({
         framerate: pointFramerate,
         'images': [loader.getResult('point')],
         'frames': {'regX': 72, 'height': 145, 'count': 20, 'regY': 72, 'width': 145 },
@@ -59,12 +60,18 @@ function handleComplete(event) {
     createjs.Ticker.addEventListener("tick", tick);
 }
 
-function generateOrk(x, y, route) {
-    let newOrk = ork.clone()
-    newOrk.x = 200
-    newOrk.y = 300
-    stage.addChild(newOrk)
-    newOrk.move()
+function generateOrk() {
+    let currentOrks = orkContainer.children.length
+
+    for (currentOrks; currentOrks < orksOnScreen; currentOrks++) {
+        let newOrk = new Ork(spriteSheet, 'idle' , {
+            x: (w * Math.random()) + 100 > w ? w - 200 : (w * Math.random()) + 100,
+            y: (w * Math.random()) + 100 > h ? h - 200 : (h * Math.random()) + 100,
+            route: ['20*80', '10*50', '20*140'] }, )
+        newOrk.move()
+        orkContainer.addChild(newOrk)
+        console.log('Generating 2')
+    }
 }
 
 function handleClick (event) {
