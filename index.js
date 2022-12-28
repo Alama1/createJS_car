@@ -3,8 +3,10 @@ let w, h;
 let loader;
 let move_multiplier = 10;
 let carSpeed = 50;
-let point
+let ork
 let pointFramerate = 10;
+let orkContainer
+let orksOnScreen = 10
 
 
 function init() {
@@ -14,8 +16,11 @@ function init() {
 
     canvas = stage.canvas
 
+    orkContainer = new createjs.Container
+
+    stage.addChild(orkContainer)
+
     let manifest = [
-        {src: "bg.jpg", id: "background"},
         {src: "point.png", id: "point"},
     ];
 
@@ -34,8 +39,6 @@ function handleComplete(event) {
     background.y = 0
     stage.addChild(background)
 
-    point = new createjs.Bitmap(loader.getResult('point'))
-
     let spriteSheet = new createjs.SpriteSheet({
         framerate: pointFramerate,
         'images': [loader.getResult('point')],
@@ -46,17 +49,22 @@ function handleComplete(event) {
         }
     });
 
-    point = new createjs.Sprite(spriteSheet, 'idle')
-    point.x = 100
-    point.y = 100
-    point.addEventListener('click', handleClick)
+    ork = new Ork(spriteSheet, 'idle', { x: 100, y: 100, route: ['20*80', '10*50', '20*140']})
 
-    stage.addChild(point)
-    moveSprite(['20*41', '10*162', '15*89', '20*20', '10*90'],point)
+
+    generateOrk()
 
     createjs.Ticker.timingMode = createjs.Ticker.RAF
     createjs.Ticker.framerate = 10
     createjs.Ticker.addEventListener("tick", tick);
+}
+
+function generateOrk(x, y, route) {
+    let newOrk = ork.clone()
+    newOrk.x = 200
+    newOrk.y = 300
+    stage.addChild(newOrk)
+    newOrk.move()
 }
 
 function handleClick (event) {
@@ -93,6 +101,6 @@ function moveSprite(array, point) {
 
 function tick(event) {
     let newFramerate = document.getElementById('framerate').value || pointFramerate
-    point.framerate = +newFramerate
+    ork.framerate = +newFramerate
     stage.update(event)
 }
