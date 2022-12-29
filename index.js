@@ -36,7 +36,7 @@ function handleComplete(event) {
     background.x = 0
     background.y = 0
 
-    background.addEventListener('click', spawnToilet)
+    background.addEventListener('click', startHarvesters)
 
     stage.addChild(background)
 
@@ -90,6 +90,12 @@ function spawnToilet(event) {
             .to({ x: x, y: y }, distance / move_multiplier * orkSpeed )
 
     })
+}
+
+function startHarvesters() {
+    let blockHeight = 80
+    let blocksCount = 16
+
 }
 
 function generateOrk() {
