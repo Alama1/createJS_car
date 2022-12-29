@@ -2,7 +2,7 @@ let stage, canvas;
 let w, h;
 let loader;
 let move_multiplier = 10;
-let carSpeed = 50;
+let orkSpeed = 50;
 let ork
 let pointFramerate = 10;
 let orkContainer
@@ -19,6 +19,7 @@ function init() {
 
     let manifest = [
         {src: "point.png", id: "point"},
+        {src: "toilet.png", id: "toilet"},
     ];
 
     createjs.Touch.enable(stage);
@@ -34,6 +35,9 @@ function handleComplete(event) {
     background.graphics.beginLinearGradientFill(["#000","#FFF"], [0, 1], 0, h, 0, 120).drawRect(0, 0, w, h)
     background.x = 0
     background.y = 0
+
+    background.addEventListener('click', spawnToilet)
+
     stage.addChild(background)
 
 
@@ -50,14 +54,42 @@ function handleComplete(event) {
         }
     });
 
-    ork = new Ork(spriteSheet, 'idle', { x: 100, y: 100, route: ['20*80', '10*50', '20*140']})
-
-
     generateOrk()
-
-    createjs.Ticker.timingMode = createjs.Ticker.RAF
-    createjs.Ticker.framerate = 10
+    createjs.Ticker.timingMode = createjs.Ticker.TIMEOUT
+    createjs.Ticker.framerate = 60
+    createjs.Ticker.addEventListener('tick', stage);
     createjs.Ticker.addEventListener("tick", tick);
+}
+
+function spawnToilet(event) {
+    let x = event.stageX
+    let y = event.stageY
+
+    let toilet = new createjs.Bitmap(loader.getResult('toilet'))
+    toilet.x = x
+    toilet.y = y
+
+    toilet.scale = 0.5
+    toilet.regX = toilet.image.width / 2
+    toilet.regY = toilet.image.height / 2
+    stage.addChild(toilet)
+
+    let orksAlive = orkContainer.children
+
+    orksAlive.forEach(ork => {
+        let angle = Math.atan2(ork.y - toilet.y, ork.x - toilet.x) / Math.PI * 180
+
+        let distance = Math.sqrt(Math.pow((toilet.x - ork.x), 2) + Math.pow((toilet.y - ork.y), 2))
+        let rad = (+angle + 180) * Math.PI / 180
+
+        let x = ork.x + (distance - 150) * Math.cos(rad)
+        let y = ork.y + (distance - 150) * Math.sin(rad)
+
+        createjs.Tween.get(ork, {override: true})
+            .to({ rotation: angle }, 200)
+            .to({ x: x, y: y }, distance / move_multiplier * orkSpeed )
+
+    })
 }
 
 function generateOrk() {
@@ -66,12 +98,19 @@ function generateOrk() {
     for (currentOrks; currentOrks < orksOnScreen; currentOrks++) {
         let newOrk = new Ork(spriteSheet, 'idle' , {
             x: (w * Math.random()) + 100 > w ? w - 200 : (w * Math.random()) + 100,
-            y: (w * Math.random()) + 100 > h ? h - 200 : (h * Math.random()) + 100,
-            route: ['20*80', '10*50', '20*140'] }, )
+            y: (h * Math.random()) + 100 > h ? h - 200 : (h * Math.random()) + 100,
+            route: generateRandomRote(5) })
         newOrk.move()
         orkContainer.addChild(newOrk)
-        console.log('Generating 2')
     }
+}
+
+function generateRandomRote(numberOfSteps) {
+    let rote = []
+    for (let i = 0; i < numberOfSteps; i++){
+        rote.push(`${50 * Math.random()}*${360 * Math.random()}`)
+    }
+    return rote
 }
 
 function handleClick (event) {
@@ -85,29 +124,42 @@ function handleClick (event) {
         .to( { x: point.x, y: point.y })
 }
 
-function moveSprite(array, point) {
-    let [distance, angle] = array.shift().split('*')
-    let rad = +angle * Math.PI / 180
-
-
-    let x = point.x + distance * move_multiplier * Math.cos(rad)
-    let y = point.y + distance * move_multiplier * Math.sin(rad)
-
-    let beep = createjs.Tween.get(point, {override: true})
-    beep.to({ rotation: +angle + 180 }, 500)
-    .to( { x: x, y: y }, 10000 )
-    .addEventListener('complete', () => {
-        if (array.length > 0) moveSprite(array, point)
-    })
-
-    setTimeout(() => {
-        beep.timeScale = 4
-    }, 2000)
-
-}
 
 function tick(event) {
-    let newFramerate = document.getElementById('framerate').value || pointFramerate
-    ork.framerate = +newFramerate
     stage.update(event)
 }
+
+
+let vis = (function(){
+    let stateKey,
+        eventKey,
+        keys = {
+            hidden: "visibilitychange",
+            webkitHidden: "webkitvisibilitychange",
+            mozHidden: "mozvisibilitychange",
+            msHidden: "msvisibilitychange"
+        };
+    for (stateKey in keys) {
+        if (stateKey in document) {
+            eventKey = keys[stateKey];
+            break;
+        }
+    }
+    return function(c) {
+        if (c) document.addEventListener(eventKey, c);
+        return !document[stateKey];
+    }
+})();
+
+vis(function(){
+    if(vis()){
+        setTimeout(function(){
+            console.info('UNPAUSE called')
+            createjs.Ticker.paused = false
+        },300);
+    } else {
+        console.info('pause called')
+        createjs.Ticker.paused = true
+    }
+});
+
