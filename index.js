@@ -176,9 +176,14 @@ function handleHarvesterCollision(event) {
 
         for (let i = 0; i < points.length; i++) {
             let objects = stage.getObjectsUnderPoint(points[i].x, points[i].y)
-            if (objects.filter((object) => object.name === 'ork')) {
-                let ork = objects.filter((object) => object.name === 'ork')
-                stage.removeChild(ork[0])
+            if (objects.filter((object) => object.name === 'ork').length > 0) {
+                let ork = objects.filter((object) => object.name === 'ork')[0]
+                ork.gotoAndPlay('click')
+                createjs.Tween.get(ork, { override: true })
+                    .to({ x: ork.x, y: ork.y })
+                setTimeout(() => {
+                    orkContainer.removeChild(ork)
+                }, 1000)
             }
         }
     })
