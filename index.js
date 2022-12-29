@@ -8,6 +8,7 @@ let pointFramerate = 10;
 let orkContainer
 let orksOnScreen = 10
 let spriteSheet
+let harvesters = new Map()
 
 
 function init() {
@@ -20,6 +21,7 @@ function init() {
     let manifest = [
         {src: "point.png", id: "point"},
         {src: "toilet.png", id: "toilet"},
+        {src: "harvester.png", id: "harvester"},
     ];
 
     createjs.Touch.enable(stage);
@@ -94,8 +96,92 @@ function spawnToilet(event) {
 
 function startHarvesters() {
     let blockHeight = 80
-    let blocksCount = 16
+    let harvester = new createjs.Bitmap(loader.getResult('harvester'))
+    harvester.regY = harvester.image.height / 2
+    harvester.regX = harvester.image.width / 2
+    harvester.y = blockHeight * 2
+    harvester.x = -160
+    harvester.rotation = 180
+    harvesters.set('harvester1', harvester)
+    let harvester2 = new createjs.Bitmap(loader.getResult('harvester'))
+    harvester2.regY = harvester.image.height / 2
+    harvester2.regX = harvester.image.width / 2
+    harvester2.y = blockHeight * 5
+    harvester2.x = w + 160
+    harvesters.set('harvester2', harvester2)
+    let harvester3 = new createjs.Bitmap(loader.getResult('harvester'))
+    harvester3.regY = harvester.image.height / 2
+    harvester3.regX = harvester.image.width / 2
+    harvester3.y = blockHeight * 8
+    harvester3.x = -160
+    harvester3.rotation = 180
+    harvesters.set('harvester3', harvester3)
+    let harvester4 = new createjs.Bitmap(loader.getResult('harvester'))
+    harvester4.regY = harvester.image.height / 2
+    harvester4.regX = harvester.image.width / 2
+    harvester4.y = blockHeight * 11
+    harvester4.x = w + 160
+    harvesters.set('harvester4', harvester4)
+    let harvester5 = new createjs.Bitmap(loader.getResult('harvester'))
+    harvester5.regY = harvester.image.height / 2
+    harvester5.regX = harvester.image.width / 2
+    harvester5.y = blockHeight * 14
+    harvester5.x = -160
+    harvester5.rotation = 180
+    harvesters.set('harvester5', harvester5)
 
+    stage.addChild(harvester)
+    stage.addChild(harvester2)
+    stage.addChild(harvester3)
+    stage.addChild(harvester4)
+    stage.addChild(harvester5)
+
+    let collisionListener = createjs.Ticker.addEventListener('tick', handleHarvesterCollision)
+    for (let i = 0; i < 5; i++) {
+        let harvesterInMap = createjs.Tween.get(harvesters.get(`harvester${i + 1}`))
+
+        harvesterInMap
+            .to( { x: i % 2 === 0 ? w + 160 : -160 }, 5000 )
+        console.log(i)
+        if (i === 4) {
+            harvesterInMap
+                .to( { x: i % 2 === 0 ? w + 160 : -160 }, 5000 )
+                .addEventListener('complete', () => {
+                    createjs.Ticker.removeEventListener('tick', collisionListener)
+                    stage.removeChild(harvesterInMap)
+                    harvesters = new Map()
+
+                    stage.removeChild(harvester)
+                    stage.removeChild(harvester2)
+                    stage.removeChild(harvester3)
+                    stage.removeChild(harvester4)
+                    stage.removeChild(harvester5)
+                })
+        }
+    }
+
+}
+
+function handleHarvesterCollision(event) {
+
+    harvesters.forEach(harvester => {
+        let leftX = harvester.x - harvester.regX + 5
+        let leftY = harvester.y - harvester.regY + 5
+        let points = [
+            new createjs.Point(leftX, leftY),
+            new createjs.Point(leftX + harvester.image.width - 10, leftY),
+            new createjs.Point(leftX, leftY + harvester.image.height - 10),
+            new createjs.Point(leftX + harvester.image.height - 10, leftY + harvester.image.height - 10),
+        ]
+
+        for (let i = 0; i < points.length; i++) {
+            let objects = stage.getObjectsUnderPoint(points[i].x, points[i].y)
+            if (objects.filter((object) => object.name === 'ork')) {
+                let ork = objects.filter((object) => object.name === 'ork')
+                stage.removeChild(ork[0])
+            }
+        }
+    })
 }
 
 function generateOrk() {
