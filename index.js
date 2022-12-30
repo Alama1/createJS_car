@@ -107,8 +107,6 @@ function raid() {
 }
 
 function spawnToilet(event) {
-
-    console.log(window.orks)
     let x = event.stageX
     let y = event.stageY
 
@@ -121,12 +119,15 @@ function spawnToilet(event) {
     toilet.regY = toilet.image.height / 2
     stage.addChild(toilet)
 
-    //TODO rework for window.orks
-    return
-
-    let orksAlive = orkContainer.children
+    let orksAlive = Object.keys(window.orks).map((orkKey) => {
+        if (window.orks[orkKey].state === 'alive') {
+            return window.orks[orkKey]
+        }
+    })
 
     orksAlive.forEach(ork => {
+        if (!ork) return
+
         let angle = Math.atan2(ork.y - toilet.y, ork.x - toilet.x) / Math.PI * 180
 
         let distance = Math.sqrt(Math.pow((toilet.x - ork.x), 2) + Math.pow((toilet.y - ork.y), 2))
@@ -137,53 +138,44 @@ function spawnToilet(event) {
 
         createjs.Tween.get(ork, {override: true})
             .to({ rotation: angle }, 200)
-            .to({ x: x, y: y }, distance / move_multiplier * orkSpeed )
+            .to({ x: x, y: y }, distance / move_multiplier * (window.orkStats.speed - 30) )
 
+        setTimeout(() => {
+            ork.kill()
+        }, 4000)
     })
+    setTimeout(() => {
+        stage.removeChild(toilet)
+    }, 4000)
 }
 
 function startHarvesters() {
     let blockHeight = 80
-    let harvester = new createjs.Bitmap(loader.getResult('harvester'))
-    harvester.regY = harvester.image.height / 2
-    harvester.regX = harvester.image.width / 2
-    harvester.y = blockHeight * 2
-    harvester.x = -160
-    harvester.rotation = 180
-    harvesters.set('harvester1', harvester)
-    let harvester2 = new createjs.Bitmap(loader.getResult('harvester'))
-    harvester2.regY = harvester.image.height / 2
-    harvester2.regX = harvester.image.width / 2
-    harvester2.y = blockHeight * 5
-    harvester2.x = w + 160
-    harvesters.set('harvester2', harvester2)
-    let harvester3 = new createjs.Bitmap(loader.getResult('harvester'))
-    harvester3.regY = harvester.image.height / 2
-    harvester3.regX = harvester.image.width / 2
-    harvester3.y = blockHeight * 8
-    harvester3.x = -160
-    harvester3.rotation = 180
-    harvesters.set('harvester3', harvester3)
-    let harvester4 = new createjs.Bitmap(loader.getResult('harvester'))
-    harvester4.regY = harvester.image.height / 2
-    harvester4.regX = harvester.image.width / 2
-    harvester4.y = blockHeight * 11
-    harvester4.x = w + 160
-    harvesters.set('harvester4', harvester4)
-    let harvester5 = new createjs.Bitmap(loader.getResult('harvester'))
-    harvester5.regY = harvester.image.height / 2
-    harvester5.regX = harvester.image.width / 2
-    harvester5.y = blockHeight * 14
-    harvester5.x = -160
-    harvester5.rotation = 180
-    harvesters.set('harvester5', harvester5)
 
-    stage.addChild(harvester)
-    stage.addChild(harvester2)
-    stage.addChild(harvester3)
-    stage.addChild(harvester4)
-    stage.addChild(harvester5)
+    for (let i = 0; i < 5; i++) {
+        let blockNumber = i * 3 + 2
 
+        if (i % 2 === 0) {
+            let harvester = new createjs.Bitmap(loader.getResult('harvester'))
+            harvester.regY = harvester.image.height / 2
+            harvester.regX = harvester.image.width / 2
+            harvester.y = blockHeight * blockNumber
+            harvester.x = -160
+            harvester.rotation = 180
+            harvesters.set(`harvester${i + 1}`, harvester)
+            stage.addChild(harvester)
+            continue
+        }
+        let harvester = new createjs.Bitmap(loader.getResult('harvester'))
+        harvester.regY = harvester.image.height / 2
+        harvester.regX = harvester.image.width / 2
+        harvester.y = blockHeight * blockNumber
+        harvester.x = w + 160
+
+        harvesters.set(`harvester${i + 1}`, harvester)
+        stage.addChild(harvester)
+
+    }
     let collisionListener = setInterval(handleHarvesterCollision, 100)
     for (let i = 0; i < 5; i++) {
         let harvesterInMap = createjs.Tween.get(harvesters.get(`harvester${i + 1}`))
