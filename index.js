@@ -14,7 +14,7 @@ window.orks = {
 }
 window.orkStats = {
     harm: 10,
-    speed: 70
+    speed: 25
 }
 
 
