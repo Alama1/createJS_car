@@ -28,6 +28,7 @@ function init() {
 
     let manifest = [
         {src: "point.png", id: "point"},
+        {src: "ork.png", id: "ork"},
         {src: "toilet.png", id: "toilet"},
         {src: "harvester.png", id: "harvester"},
     ];
@@ -66,7 +67,7 @@ function handleComplete(event) {
 
     spriteSheet = new createjs.SpriteSheet({
         framerate: pointFramerate,
-        'images': [loader.getResult('point')],
+        'images': [loader.getResult('ork')],
         'frames': {'regX': 72, 'height': 145, 'count': 20, 'regY': 72, 'width': 145 },
         'animations': {
             'idle': [0, 9, 'idle'],
