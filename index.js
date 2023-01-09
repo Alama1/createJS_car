@@ -4,7 +4,7 @@ let loader;
 let move_multiplier = 10;
 let pointFramerate = 10;
 let orkContainer
-let orksOnScreen = 10
+let orksOnScreen = 1
 let spriteSheet
 let harvesters = new Map()
 let killedCounter = 0
@@ -14,7 +14,7 @@ window.orks = {
 }
 window.orkStats = {
     harm: 10,
-    speed: 50
+    speed: 70
 }
 
 
@@ -52,9 +52,9 @@ function handleComplete(event) {
     let killedTextBounds = killedText.getBounds()
     killedText.x = w - killedTextBounds.width - 50
     killedText.y = killedTextBounds.height / 2
-    setInterval(() => {
-        raid()
-    }, 10000)
+    // setInterval(() => {
+    //     raid()
+    // }, 10000)
 
     stage.addChild(background)
 
@@ -98,7 +98,20 @@ function raid() {
     stage.addChild(text)
     setTimeout(() => { stage.removeChild(text) }, 5000)
 
+
+    //TODO FIX THIS
+    let orksAlive = Object.keys(window.orks).map((orkKey) => {
+        if (window.orks[orkKey].state === 'alive') {
+            return window.orks[orkKey]
+        }
+    }).length
+    let orksToSpawn = window.orks.orksToSpawn.length
+    if (orksToSpawn + orksAlive > orksOnScreen) {
+        window.orks.orksToSpawn.length = orksAlive + orksToSpawn - orksOnScreen
+    }
+
     let count = window.orks.orksToSpawn.length
+
     for (let i = 0; i < count; i++) {
         let ork = window.orks.orksToSpawn.shift()
         window.orks[ork.id] = ork
@@ -137,8 +150,8 @@ function spawnToilet(event) {
         let y = ork.y + (distance - 150) * Math.sin(rad)
 
         createjs.Tween.get(ork, {override: true})
-            .to({ rotation: angle }, 200)
-            .to({ x: x, y: y }, distance / move_multiplier * (window.orkStats.speed - 30) )
+            .to({ rotation: angle })
+            .to({ x: x, y: y }, distance / move_multiplier * (window.orkStats.speed - 30))
 
         setTimeout(() => {
             ork.kill()
@@ -153,24 +166,19 @@ function startHarvesters() {
     let blockHeight = 80
 
     for (let i = 0; i < 5; i++) {
-        let blockNumber = i * 3 + 2
-
-        if (i % 2 === 0) {
-            let harvester = new createjs.Bitmap(loader.getResult('harvester'))
-            harvester.regY = harvester.image.height / 2
-            harvester.regX = harvester.image.width / 2
-            harvester.y = blockHeight * blockNumber
-            harvester.x = -160
-            harvester.rotation = 180
-            harvesters.set(`harvester${i + 1}`, harvester)
-            stage.addChild(harvester)
-            continue
-        }
         let harvester = new createjs.Bitmap(loader.getResult('harvester'))
+        let blockNumber = i * 3 + 2
         harvester.regY = harvester.image.height / 2
         harvester.regX = harvester.image.width / 2
+        harvester.name = 'harvester'
+
         harvester.y = blockHeight * blockNumber
-        harvester.x = w + 160
+        if (i % 2 === 0) {
+            harvester.x = -160
+            harvester.rotation = 180
+        } else {
+            harvester.x = w + 160
+        }
 
         harvesters.set(`harvester${i + 1}`, harvester)
         stage.addChild(harvester)
@@ -189,13 +197,9 @@ function startHarvesters() {
                     clearInterval(collisionListener)
                     stage.removeChild(harvesterInMap)
                     harvesters = new Map()
-                    console.log('clearing')
-
-                    stage.removeChild(harvester)
-                    stage.removeChild(harvester2)
-                    stage.removeChild(harvester3)
-                    stage.removeChild(harvester4)
-                    stage.removeChild(harvester5)
+                    stage.children.filter((child) => child.name === 'harvester').forEach(harvester => {
+                        stage.removeChild(harvester)
+                    })
                 })
         }
     }
@@ -231,12 +235,10 @@ window.generateOrk = function generateOrk() {
     )
     killedText.text = `Killed: ${orks.length - 1}`
 
-    let newOrk = new Ork(spriteSheet, 'idle' , {
-        x: (w * Math.random()) + 100 > w ? w - 200 : (w * Math.random()) + 100,
-        y: (h * Math.random()) + 100 > h ? h - 200 : (h * Math.random()) + 100,
-        route: generateRandomRote(5) })
+    let newOrk = new Ork(spriteSheet, 'idle' , {        route: {"start":[209,-73],"init":[[209,117,90],[124.148,201.852,135],[279.71,357.414,45],[279.71,487.414,90],[194.858,572.266,135]],"cycle":[[124.148,501.556,225],[300.923,324.781,315],[166.574,190.432,225],[237.284,119.722,315],[343.349,225.787,45],[583.349,225.787,0],[583.349,95.787,270],[383.349,95.787,180],[143.349,95.787,180],[143.349,295.787,90],[214.059,366.497,45],[214.059,606.497,90],[129.207,691.349,135],[256.485,818.627,45],[256.485,918.627,90],[386.485,918.627,0],[492.55,1024.692,45],[591.544,1123.686,45],[451.544,1123.686,180],[331.337,1003.479,225],[253.556,1081.26,135],[331.337,1159.041,45],[521.337,1159.041,0],[521.337,929.041,270],[365.775,773.479,225],[210.213,929.041,135],[365.775,1084.603,45],[485.775,1084.603,0],[485.775,834.603,270],[337.284,686.112,225],[337.284,496.112,270],[217.077,375.905,225],[111.012,481.97,135],[111.012,621.97,90],[194.858,572.266,359.407]]},
+    })
     newOrk.move()
-    window.orks.orksToSpawn.push(newOrk)
+    orkContainer.addChild(newOrk)
 
 }
 
